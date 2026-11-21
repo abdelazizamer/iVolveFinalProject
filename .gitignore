@@ -1,0 +1,29 @@
+# Local Compose configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Local build/runtime output
+**/node_modules/
+**/target/
+**/__pycache__/
+**/.venv/
+**/venv/
+
+# Terraform state, local cache, and sensitive variable files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Local Terraform plan files
+*.tfplan

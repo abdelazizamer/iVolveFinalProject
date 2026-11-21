@@ -1,0 +1,100 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in .env}
+      MYSQL_USER: ${MYSQL_USER:?Set MYSQL_USER in .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in .env}
+      DB_USER: ${MYSQL_USER:?Set MYSQL_USER in .env}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    expose:
+      - "5000"
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  roadmap-service:
+    build:
+      context: .
+      dockerfile: roadmap-service/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "8080"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/api/roadmap"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5000
+      ROADMAP_SERVICE_URL: http://roadmap-service:8080
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      roadmap-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:http').get('http://127.0.0.1:3000/', response => { response.resume(); process.exitCode = response.statusCode === 200 ? 0 : 1 }).on('error', () => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

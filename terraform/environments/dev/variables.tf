@@ -1,0 +1,24 @@
+variable "aws_region" {
+  description = "AWS region for the development environment"
+  type        = string
+  default     = "us-east-1"
+}
+variable "project_name" {
+  description = "Prefix used for project resource names"
+  type        = string
+  default     = "ivolve-devops"
+}
+variable "kubernetes_version" {
+  description = "Kubernetes version for the EKS cluster"
+  type        = string
+  default     = "1.35"
+}
+variable "admin_cidr" {
+  description = "Your public IPv4 CIDR, restricted to your address"
+  type        = string
+}
+
+variable "jenkins_ssh_public_key_path" {
+  description = "Absolute path to your SSH public key file"
+  type        = string
+}
