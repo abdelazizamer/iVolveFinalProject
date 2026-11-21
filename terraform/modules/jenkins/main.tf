@@ -101,5 +101,11 @@ resource "aws_instance" "jenkins" {
     Name = "${var.project_name}-jenkins"
   }
 
+  # Preserve the manually configured Jenkins host when the AMI data source
+  # discovers a newer Amazon Linux image.
+  lifecycle {
+    ignore_changes = [ami]
+  }
+
   depends_on = [aws_iam_role_policy_attachment.ssm]
 }

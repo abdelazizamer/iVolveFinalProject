@@ -22,3 +22,9 @@ variable "jenkins_ssh_public_key_path" {
   description = "Absolute path to your SSH public key file"
   type        = string
 }
+
+variable "github_repository" {
+  description = "GitHub repository allowed to deploy to EKS, in owner/name format"
+  type        = string
+  default     = "abdelazizamer/iVolveFinalProject"
+}
