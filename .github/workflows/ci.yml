@@ -33,7 +33,7 @@ jobs:
       contents: read
       id-token: write
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - service: auth-service
