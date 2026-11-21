@@ -1,0 +1,124 @@
+name: Build, scan, and publish images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "auth-service/**"
+      - "frontend/**"
+      - "roadmap-service/**"
+      - ".dockerignore"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 397845934845.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY_PREFIX: ivolve-devops
+
+jobs:
+  build-scan-push:
+    name: ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - service: auth-service
+            dockerfile: ./auth-service/Dockerfile
+          - service: frontend
+            dockerfile: ./frontend/Dockerfile
+          - service: roadmap-service
+            dockerfile: ./roadmap-service/Dockerfile
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: "397845934845"
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2.1.7
+
+      - name: Build image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: docker build --pull --file "${{ matrix.dockerfile }}" --tag "local/${{ matrix.service }}:${IMAGE_TAG}" .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: local/${{ matrix.service }}:${{ github.sha }}
+          scan-type: image
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push immutable image to ECR
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY_PREFIX: ${{ env.ECR_REPOSITORY_PREFIX }}
+          SERVICE: ${{ matrix.service }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_image="$ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$SERVICE:$IMAGE_TAG"
+
+          # ECR repositories are immutable; a workflow rerun reuses the existing SHA image.
+          if aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY_PREFIX/$SERVICE" \
+            --image-ids "imageTag=$IMAGE_TAG" >/dev/null 2>&1; then
+            echo "Image already exists: $remote_image"
+            exit 0
+          fi
+
+          docker tag "local/$SERVICE:$IMAGE_TAG" "$remote_image"
+          docker push "$remote_image"
+
+  update-gitops-manifests:
+    name: Update image tags for Argo CD
+    needs: build-scan-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set image tags to this commit
+        run: python3 scripts/update-image-tags.py "${GITHUB_SHA}"
+
+      - name: Commit image tag changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- k8s/workloads.yaml; then
+            echo "Kubernetes manifests already point to this commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add k8s/workloads.yaml
+          git commit -m "Update Kubernetes images to ${GITHUB_SHA:0:12}"
+          git push

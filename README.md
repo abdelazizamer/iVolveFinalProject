@@ -4,6 +4,8 @@
   <img src="frontend/public/images/ivolve-logo.png" height="100"/>
 </p>
 
+> **Current DevOps delivery architecture:** GitHub Actions handles CI (build, Trivy scan, and push to ECR); Argo CD handles CD to the private EKS cluster. Jenkins and Ansible are not part of the target workflow. See [DELIVERY_ARCHITECTURE.md](DELIVERY_ARCHITECTURE.md) for the safe MySQL migration and cutover steps. The older application description below is upstream documentation; where its technology labels differ, the actual service source is authoritative.
+
 <h1 align="center" style="font-family: 'Poppins', sans-serif; color: #e0e0e0; font-size: 2.8rem;">
    DevOps Project
 </h1>
@@ -52,7 +54,7 @@ The application follows a microservices architecture consisting of:
                          ▼                     ▼
                 ┌─────────────────┐   ┌──────────────────┐
                 │   Auth Service  │   │ Roadmap Service  │
-                │      Java       │   │     Python       │
+                │ Python / Flask │   │ Java / Spring    │
                 └────────┬────────┘   └──────────────────┘
                          │                      
                          │                      
@@ -71,8 +73,8 @@ The project contains three application microservices.
 | Service         | Technology              | Responsibility                                 |
 | --------------- | ------------------------ | ----------------------------------------------- |
 | Frontend        | Node.js / Express / EJS  | Web UI and communication with backend services |
-| Auth Service    | Java                      | User registration and authentication           |
-| Roadmap Service | Python                    | DevOps roadmap/application data                |
+| Auth Service    | Python / Flask             | User registration and authentication           |
+| Roadmap Service | Java / Spring Boot         | DevOps roadmap/application data                |
 
 The databases are external dependencies of the microservices.
 

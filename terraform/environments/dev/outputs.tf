@@ -34,7 +34,7 @@ output "jenkins_public_ip" {
   value = module.jenkins.public_ip
 }
 
-output "github_actions_deploy_role_arn" {
-  description = "IAM role assumed by GitHub Actions through OIDC for EKS deployment"
-  value       = aws_iam_role.github_actions_deploy.arn
+output "github_actions_ci_role_arn" {
+  description = "Least-privilege IAM role assumed by GitHub Actions through OIDC to push images to ECR"
+  value       = aws_iam_role.github_actions_ci.arn
 }

@@ -13,18 +13,20 @@ variable "kubernetes_version" {
   type        = string
   default     = "1.35"
 }
+
+# These inputs remain only while the existing EC2 is used for the private-cluster cutover.
 variable "admin_cidr" {
-  description = "Your public IPv4 CIDR, restricted to your address"
+  description = "Administrator IPv4 CIDR used by the temporary bootstrap host security group"
   type        = string
 }
 
 variable "jenkins_ssh_public_key_path" {
-  description = "Absolute path to your SSH public key file"
+  description = "Path to the public key for the temporary in-VPC bootstrap host"
   type        = string
 }
 
 variable "github_repository" {
-  description = "GitHub repository allowed to deploy to EKS, in owner/name format"
+  description = "GitHub repository allowed to publish images, in owner/name format"
   type        = string
   default     = "abdelazizamer/iVolveFinalProject"
 }

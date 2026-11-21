@@ -5,71 +5,12 @@ metadata:
   namespace: default
 spec:
   selector:
-    app: mysql
+    app: mysql-stateful
   ports:
     - name: mysql
       port: 3306
       targetPort: 3306
   type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mysql
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: mysql
-  template:
-    metadata:
-      labels:
-        app: mysql
-    spec:
-      containers:
-        - name: mysql
-          image: mysql:8.4
-          ports:
-            - name: mysql
-              containerPort: 3306
-          env:
-            - name: MYSQL_DATABASE
-              value: ivolve
-            - name: MYSQL_USER
-              value: ivolve_app
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: MYSQL_PASSWORD
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: MYSQL_ROOT_PASSWORD
-          startupProbe:
-            tcpSocket:
-              port: mysql
-            periodSeconds: 5
-            failureThreshold: 30
-          readinessProbe:
-            tcpSocket:
-              port: mysql
-            periodSeconds: 10
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-data
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -102,19 +43,31 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: __AWS_ACCOUNT_ID__.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/auth-service:__IMAGE_TAG__
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/auth-service:ac415148f09c
           ports:
             - name: http
               containerPort: 5000
           env:
             - name: DB_HOST
-              value: mysql
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_HOST
             - name: DB_PORT
-              value: "3306"
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_PORT
             - name: DB_NAME
-              value: ivolve
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_NAME
             - name: DB_USER
-              value: ivolve_app
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -165,7 +118,7 @@ spec:
     spec:
       containers:
         - name: roadmap-service
-          image: __AWS_ACCOUNT_ID__.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/roadmap-service:__IMAGE_TAG__
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/roadmap-service:ac415148f09c
           ports:
             - name: http
               containerPort: 8080
@@ -214,15 +167,21 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: __AWS_ACCOUNT_ID__.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/frontend:__IMAGE_TAG__
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/frontend:ac415148f09c
           ports:
             - name: http
               containerPort: 3000
           env:
             - name: AUTH_SERVICE_URL
-              value: http://auth-service:5000
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AUTH_SERVICE_URL
             - name: ROADMAP_SERVICE_URL
-              value: http://roadmap-service:8080
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ROADMAP_SERVICE_URL
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
