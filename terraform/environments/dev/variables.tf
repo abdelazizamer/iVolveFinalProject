@@ -28,3 +28,15 @@ variable "github_repository" {
   type        = string
   default     = "abdelazizamer/iVolveFinalProject"
 }
+
+variable "github_repository_owner_id" {
+  description = "Immutable GitHub owner ID used in the OIDC subject claim"
+  type        = string
+  default     = "143232543"
+}
+
+variable "github_repository_id" {
+  description = "Immutable GitHub repository ID used in the OIDC subject claim"
+  type        = string
+  default     = "1464475006"
+}
