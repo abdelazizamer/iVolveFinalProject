@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/auth-service:ac415148f09c
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/auth-service:930b14afc464f77976ca9a00fd42a4be4dcffd8e
           ports:
             - name: http
               containerPort: 5000
@@ -118,7 +118,7 @@ spec:
     spec:
       containers:
         - name: roadmap-service
-          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/roadmap-service:ac415148f09c
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/roadmap-service:930b14afc464f77976ca9a00fd42a4be4dcffd8e
           ports:
             - name: http
               containerPort: 8080
@@ -167,7 +167,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/frontend:ac415148f09c
+          image: 397845934845.dkr.ecr.us-east-1.amazonaws.com/ivolve-devops/frontend:930b14afc464f77976ca9a00fd42a4be4dcffd8e
           ports:
             - name: http
               containerPort: 3000
