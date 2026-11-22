@@ -4,7 +4,7 @@
 
 This analysis is based on the public source repository `Ibrahim-Adel15/iVolveFinalProject`, cloned into this workspace at commit `def4818` (`Update README.md`). The checkout was shallow, but includes the complete tracked application tree at that commit. Phase 1 is source inspection only; no application code or infrastructure has been changed.
 
-The original Phase 1 snapshot and findings remain historical. The current user-approved delivery decision is GitHub Actions for CI and Argo CD for CD to EKS. Jenkins and Ansible are not in the target architecture. The live Jenkins EC2 is retained temporarily as an in-VPC migration/bootstrap host because the EKS API is private and MySQL data must be moved before that instance can be retired. See `DELIVERY_ARCHITECTURE.md` for the current runbook.
+The original Phase 1 snapshot and findings remain historical. The current user-approved delivery decision is GitHub Actions for CI and Argo CD for CD to EKS. Jenkins and Ansible are not in the target architecture. The MySQL migration to encrypted EBS and the Argo CD sync/health check are complete; only the reviewed Terraform retirement plan for the temporary bootstrap EC2 and its access remains. See `DELIVERY_ARCHITECTURE.md` for the verified state and current cleanup step.
 
 ## Verified architecture
 

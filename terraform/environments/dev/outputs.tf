@@ -26,14 +26,6 @@ output "eks_node_group_name" {
   value = module.eks.node_group_name
 }
 
-output "jenkins_instance_id" {
-  value = module.jenkins.instance_id
-}
-
-output "jenkins_public_ip" {
-  value = module.jenkins.public_ip
-}
-
 output "github_actions_ci_role_arn" {
   description = "Least-privilege IAM role assumed by GitHub Actions through OIDC to push images to ECR"
   value       = aws_iam_role.github_actions_ci.arn

@@ -4,7 +4,7 @@
   <img src="frontend/public/images/ivolve-logo.png" height="100"/>
 </p>
 
-> **Current DevOps delivery architecture:** GitHub Actions handles CI (build, Trivy scan, and push to ECR); Argo CD handles CD to the private EKS cluster. Jenkins and Ansible are not part of the target workflow. See [DELIVERY_ARCHITECTURE.md](DELIVERY_ARCHITECTURE.md) for the safe MySQL migration and cutover steps. The older application description below is upstream documentation; where its technology labels differ, the actual service source is authoritative.
+> **Current DevOps delivery architecture:** GitHub Actions handles CI (build, Trivy scan, and push to ECR); Argo CD handles CD to the private EKS cluster. Jenkins and Ansible are not part of the target workflow. MySQL runs on encrypted EBS, and the Jenkins/bootstrap EC2 has been retired. See [DELIVERY_ARCHITECTURE.md](DELIVERY_ARCHITECTURE.md) for the verified state. The older application description below is upstream documentation; where its technology labels differ, the actual service source is authoritative.
 
 <h1 align="center" style="font-family: 'Poppins', sans-serif; color: #e0e0e0; font-size: 2.8rem;">
    DevOps Project

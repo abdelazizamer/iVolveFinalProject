@@ -14,7 +14,7 @@
 - Argo CD performs CD: it watches the `k8s/` directory in the `main` branch and syncs the private EKS cluster.
 - Do not use Jenkins for CI or GitHub Actions for direct Kubernetes deployment.
 - Jenkins and Ansible are not part of the target architecture. There is no Ansible configuration in this repository.
-- The existing Jenkins EC2 is retained only as a temporary in-VPC bootstrap/migration host. Retire its EC2, IAM access, and security-group rule only after MySQL data is on EBS and Argo CD has synced and been verified.
+- The former Jenkins EC2, its IAM access, and its EKS security-group route have been removed with Terraform. The EKS API is private, so live Kubernetes inspection now requires an authorized connection inside the VPC.
 - Keep the EKS API private. Keep application Services internal (`ClusterIP`).
 
 ## Safety and state
@@ -22,7 +22,7 @@
 - Never hardcode or commit credentials or database passwords.
 - Preserve existing MySQL data when moving from the ephemeral Deployment to the EBS-backed StatefulSet. Verify the restored row count before switching the service.
 - Never run `terraform apply` or `terraform destroy` without explicit user approval. Review plans and identify destroys first.
-- Do not terminate the temporary EC2 or remove its EKS access before the Argo CD bootstrap and database migration are complete.
+- Do not terminate the former EC2 or remove its EKS access before the Argo CD bootstrap and database migration are complete. Both checks were verified on 2026-11-22.
 
 ## Verified application facts
 
@@ -34,5 +34,6 @@
 ## Progress and known validation limits
 
 - Docker/Compose, Terraform, Kubernetes, ECR, GitHub Actions and EKS files exist. The application has previously been deployed successfully to EKS through GitHub Actions.
-- The current local MySQL-to-EBS migration and EBS CSI add-on changes are pending validation/application. Do not claim the MySQL migration is complete until it is observed in the cluster.
+- MySQL migration is complete: the 5 GiB encrypted EBS PVC is Bound, StatefulSet/mysql is Ready, service/mysql selects mysql-stateful, and the restored users row count matches the source (0).
+- Before retiring the bootstrap host, Argo CD Application ivolve-devops was Synced and Healthy; auth-service, frontend, roadmap-service, and mysql pods were Ready. After retirement, AWS CLI confirmed the Jenkins EC2 is terminated, EKS remains ACTIVE, and the 5 GiB encrypted gp3 MySQL volume remains in-use on an EKS worker. The approved Terraform plan made no changes to EKS, VPC, ECR, GitHub OIDC, or EBS resources.
 - The cluster endpoint is private-only. Kubernetes bootstrap commands must run from an authorized host inside the VPC or a connected network.
