@@ -15,7 +15,7 @@
 - Do not use Jenkins for CI or GitHub Actions for direct Kubernetes deployment.
 - Jenkins and Ansible are not part of the target architecture. There is no Ansible configuration in this repository.
 - The former Jenkins EC2, its IAM access, and its EKS security-group route have been removed with Terraform. The EKS API is private, so live Kubernetes inspection now requires an authorized connection inside the VPC.
-- Kubernetes application Deployments/Services and the app ConfigMap are prepared for namespace `ivolve`. Keep the EBS-backed MySQL StatefulSet, Service, Secret, ConfigMap, and PVC in `default`. The `app-secrets` Secret was copied into `ivolve` from the authorized CloudShell VPC session; after pushing the manifests, update the existing Argo CD Application to the `ivolve` destination.
+- Kubernetes application Deployments/Services and the app ConfigMap are deployed in namespace `ivolve`; the three application Pods were confirmed `1/1` Ready on Argo CD revision `1f80d2d`. Keep MySQL and its Service, Secret, ConfigMap, StatefulSet, and PVC in `default`. The `app-secrets` Secret was copied into `ivolve` and its key names verified.
 - Terraform manages restrictive Network ACL `acl-0dc0f5192d6438c08`, associated with all four public/private subnets. It allows intra-VPC traffic, outbound TCP 80/443, and inbound TCP ephemeral return traffic; unmatched IPv4 traffic is denied by the AWS default rule.
 - Keep the EKS API private. Keep application Services internal (`ClusterIP`).
 
@@ -24,7 +24,7 @@
 - Never hardcode or commit credentials or database passwords.
 - Preserve existing MySQL data when moving from the ephemeral Deployment to the EBS-backed StatefulSet. Verify the restored row count before switching the service.
 - Never run `terraform apply` or `terraform destroy` without explicit user approval. Review plans and identify destroys first.
-- The former EC2 retirement is complete. Do not change the private EKS endpoint or remove the retained MySQL EBS volume as part of the pending namespace/NACL work.
+- The former EC2 retirement, application namespace move, and Network ACL rollout are complete. Keep the EKS endpoint private and preserve the retained MySQL EBS volume.
 
 ## Verified application facts
 
@@ -38,5 +38,5 @@
 - Docker/Compose, Terraform, Kubernetes, ECR, GitHub Actions and EKS files exist. The application has previously been deployed successfully to EKS through GitHub Actions.
 - MySQL migration is complete: the 5 GiB encrypted EBS PVC is Bound, StatefulSet/mysql is Ready, service/mysql selects mysql-stateful, and the restored users row count matches the source (0).
 - Before retiring the bootstrap host, Argo CD Application ivolve-devops was Synced and Healthy; auth-service, frontend, roadmap-service, and mysql pods were Ready. After retirement, AWS CLI confirmed the Jenkins EC2 is terminated, EKS remains ACTIVE, and the 5 GiB encrypted gp3 MySQL volume remains in-use on an EKS worker. The approved retirement plan made no changes to EKS, VPC, ECR, GitHub OIDC, or EBS resources.
-- Namespace migration manifests remain local and are not deployed. The namespace `ivolve` and its `app-secrets` copy are ready; push the reviewed manifests, then apply the updated Argo CD Application from the VPC-connected CloudShell. The restrictive ACL has been applied and AWS confirmed association with the four subnets.
+- Namespace commit `1f80d2d` is pushed. CloudShell VPC verified Argo CD `Synced` / `Healthy`, all three app Deployments/Pods `1/1` Ready in `ivolve`, and the MySQL StatefulSet/PVC remains in `default` and Bound. A retired Deployment named `mysql` remains scaled to zero (`0/0`); the StatefulSet serves the database. The restrictive ACL is applied and associated with all four subnets.
 - The cluster endpoint is private-only. Kubernetes bootstrap commands must run from an authorized host inside the VPC or a connected network.

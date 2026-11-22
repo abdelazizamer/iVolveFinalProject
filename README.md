@@ -4,7 +4,7 @@
   <img src="frontend/public/images/ivolve-logo.png" height="100"/>
 </p>
 
-> **Current DevOps delivery architecture:** GitHub Actions handles CI (build, Trivy scan, and push to ECR); Argo CD handles CD to the private EKS cluster. Jenkins and Ansible are not part of the target workflow. MySQL runs on encrypted EBS, and the Jenkins/bootstrap EC2 has been retired. The `ivolve` namespace and copied application Secret are ready; manifests still need to be pushed and the existing Argo CD Application updated. A restrictive Network ACL is applied to the VPC subnets. See [DELIVERY_ARCHITECTURE.md](DELIVERY_ARCHITECTURE.md) for the verified state and next steps. The older application description below is upstream documentation; where its technology labels differ, the actual service source is authoritative.
+> **Current DevOps delivery architecture:** GitHub Actions performs CI (build, Trivy scan, and push to ECR); Argo CD performs CD to the private EKS cluster. The application namespace migration to `ivolve` is complete and healthy on revision `1f80d2d`; MySQL remains on its encrypted EBS-backed StatefulSet/PVC in `default`. Services remain internal `ClusterIP`. Jenkins and Ansible were removed by the user-directed architecture decision, and no public Ingress is configured. See [DELIVERY_ARCHITECTURE.md](DELIVERY_ARCHITECTURE.md) for verified status and setup notes.
 
 <h1 align="center" style="font-family: 'Poppins', sans-serif; color: #e0e0e0; font-size: 2.8rem;">
    DevOps Project
