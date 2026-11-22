@@ -41,6 +41,15 @@ Post-apply AWS CLI verification confirmed:
 
 Argo CD and all workload pods were verified `Synced` / `Healthy` and Ready immediately before EC2 retirement. A post-retirement Kubernetes API check was not available from this workstation because the EKS API is private and the only in-VPC bootstrap EC2 has been terminated. The application Services remain internal (`ClusterIP`).
 
+## Remaining project requirements
+
+- **Namespace:** app Deployments/Services and their ConfigMap are prepared for `ivolve`. MySQL, its Service, Secret, ConfigMap, StatefulSet, and EBS-backed PVC remain in `default`. The `app-secrets` copy into `ivolve` succeeded from CloudShell VPC; after pushing the manifests, update the existing Argo CD Application to destination namespace `ivolve` so automated sync migrates the application workloads.
+- **Network ACL:** Terraform created and associated restrictive ACL `acl-0dc0f5192d6438c08` with all four public/private subnets. AWS confirmed rules allowing intra-VPC traffic, TCP 80/443 egress, and TCP ephemeral return traffic; the default catch-all deny blocks unmatched IPv4 traffic. Applied successfully: 5 added, 0 changed, 0 destroyed.
+- **Ingress:** intentionally omitted. The application remains internal by the user's choice.
+- **Latest deployment:** check the newest GitHub Actions and Argo CD run after the pending changes are deployed. The last recorded successful CI/Argo verification is for commit `930b14a`, before later repository updates.
+
+The EKS API remains private. The namespace exists and the `app-secrets` copy is complete. Push the reviewed manifests only after confirming the local Git changes, then update the current Argo CD Application from the VPC-connected CloudShell; the existing Application does not automatically consume `argocd/application.yaml` unless that file is applied.
+
 ## Operational notes
 
 - ECR repositories use immutable tags. CI reuses an existing image for a rerun of the same commit SHA.

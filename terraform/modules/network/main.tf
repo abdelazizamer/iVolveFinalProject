@@ -16,6 +16,75 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Keep east-west VPC traffic available for EKS while limiting internet egress
+# to HTTP and HTTPS. NACLs are stateless, so allow TCP ephemeral return ports.
+resource "aws_network_acl" "main" {
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "6"
+    rule_no    = 110
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 1024
+    to_port    = 65535
+  }
+
+  egress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 0
+    to_port    = 0
+  }
+
+  egress {
+    protocol   = "6"
+    rule_no    = 110
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 80
+    to_port    = 80
+  }
+
+  egress {
+    protocol   = "6"
+    rule_no    = 120
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 443
+    to_port    = 443
+  }
+
+  tags = {
+    Name = "${var.project_name}-network-acl"
+  }
+}
+
+resource "aws_network_acl_association" "public" {
+  for_each = aws_subnet.public
+
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = each.value.id
+}
+
+resource "aws_network_acl_association" "private" {
+  for_each = aws_subnet.private
+
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = each.value.id
+}
+
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
