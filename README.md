@@ -449,6 +449,8 @@ bash scripts/migrate-mysql-stateful.sh
 | Argo CD is OutOfSync/Degraded | `kubectl describe application ivolve-devops -n argocd`; inspect pods and events. |
 | MySQL/PVC issue | `kubectl get pvc -n default`; `kubectl describe pvc mysql-data-mysql-0 -n default`; inspect `mysql-0` logs. Preserve the PVC. |
 
+<img width="1245" height="793" alt="image" src="https://github.com/user-attachments/assets/184b5455-5656-4956-ac6c-46ef7c10618a" />
+
 ## Handoff checklist
 
 - [ ] GitHub Actions CI is green for the latest application commit.
