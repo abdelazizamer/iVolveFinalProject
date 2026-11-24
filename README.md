@@ -121,6 +121,8 @@ For each service, it:
 4. Pushes the image to ECR with the full Git commit SHA as an immutable tag. A rerun reuses an image already published for the same SHA.
 
 After all image jobs pass, the workflow updates **k8s/workloads.yaml** to use the SHA tag and pushes that manifest change to **main**. The required GitHub repository Actions variable is **AWS_ROLE_ARN**; it contains an IAM role ARN, not a password.
+<img width="1917" height="726" alt="Screenshot 2026-11-24 185954" src="https://github.com/user-attachments/assets/5603f5ce-98c5-4307-a8bd-867eaa82a5d1" />
+
 
 ### Argo CD CD
 
